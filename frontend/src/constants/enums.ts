@@ -80,6 +80,17 @@ export const MAINTENANCE_STATUS_TEXT: Record<string, string> = {
   cancelled: '已取消',
 };
 
+// 故障维修完工结论：与后端 constants.RepairOutcome* 对应。
+export const REPAIR_OUTCOME = {
+  RESUMED: 'resumed', // 已修复，继续使用
+  BROKEN: 'broken',   // 无法修好
+} as const;
+
+export const REPAIR_OUTCOME_TEXT: Record<string, string> = {
+  resumed: '继续使用',
+  broken: '无法修好（转报废）',
+};
+
 export const CALIBRATION_STATUS = {
   NORMAL: 'normal',
   UNQUALIFIED: 'unqualified',

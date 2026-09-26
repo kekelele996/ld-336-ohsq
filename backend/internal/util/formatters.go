@@ -103,6 +103,18 @@ func MaintenanceStatusText(status string) string {
 	}
 }
 
+// RepairOutcomeText 故障维修完工结论展示文本。
+func RepairOutcomeText(outcome string) string {
+	switch outcome {
+	case constants.RepairOutcomeResumed:
+		return "已修复，继续使用"
+	case constants.RepairOutcomeBroken:
+		return "无法修好"
+	default:
+		return outcome
+	}
+}
+
 // CalibrationStatusText 计量状态展示文本。
 func CalibrationStatusText(status string) string {
 	switch status {

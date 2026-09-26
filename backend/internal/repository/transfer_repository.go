@@ -6,6 +6,7 @@ import (
 
 	"github.com/medasset/medasset/internal/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // TransferRepository 调拨申请仓储。
@@ -29,6 +30,16 @@ func (r *TransferRepository) Create(t *model.TransferRequest) error {
 func (r *TransferRepository) FindByID(id uint) (*model.TransferRequest, error) {
 	var t model.TransferRequest
 	err := r.db.First(&t, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &t, err
+}
+
+// FindByIDForUpdate 事务内按 ID 加锁查询（并发审批安全）。
+func (r *TransferRepository) FindByIDForUpdate(tx *gorm.DB, id uint) (*model.TransferRequest, error) {
+	var t model.TransferRequest
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&t, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNotFound
 	}

@@ -114,7 +114,7 @@ export class ScrapsComponent implements OnInit, OnDestroy {
       if (!payload) return;
       scrapCreateApi(this.http, payload).subscribe({
         next: () => { this.snackBar.open('报废申请已提交', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 }),
       });
     });
   }
@@ -127,7 +127,11 @@ export class ScrapsComponent implements OnInit, OnDestroy {
       if (!ok) return;
       scrapApproveApi(this.http, s.id).subscribe({
         next: () => { this.snackBar.open('报废已批准，设备已归档', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        error: (err) => {
+          // 与维修流程并发冲突时提示最新设备状态并刷新列表。
+          this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 });
+          this.load();
+        },
       });
     });
   }

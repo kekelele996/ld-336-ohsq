@@ -19,6 +19,8 @@ export interface CompletePayload {
   work_hours?: number;
   cost?: number;
   repair_result?: string;
+  // 故障维修完工结论：resumed=继续使用（恢复原状态），broken=无法修好（设备转报废）。
+  repair_outcome?: 'resumed' | 'broken';
 }
 export interface CancelPayload { reason?: string; }
 

@@ -56,8 +56,8 @@ func New(deps Deps) *gin.Engine {
 	purchaseSvc := service.NewPurchaseService(purchaseRepo, deviceRepo, auditSvc, deps.Log)
 	maintenanceSvc := service.NewMaintenanceService(maintenanceRepo, deviceRepo, auditSvc, deps.Log)
 	calibrationSvc := service.NewCalibrationService(calibrationRepo, deviceRepo, auditSvc, deps.Log)
-	transferSvc := service.NewTransferService(transferRepo, deviceRepo, auditSvc, deps.Log)
-	scrapSvc := service.NewScrapService(scrapRepo, deviceRepo, auditSvc, deps.Log)
+	transferSvc := service.NewTransferService(transferRepo, deviceRepo, maintenanceRepo, auditSvc, deps.Log)
+	scrapSvc := service.NewScrapService(scrapRepo, deviceRepo, maintenanceRepo, auditSvc, deps.Log)
 	statsSvc := service.NewStatsService(deviceRepo, maintenanceRepo, calibrationRepo, purchaseRepo, auditSvc, deps.Log)
 
 	// 处理器层。

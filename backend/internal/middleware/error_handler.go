@@ -42,6 +42,10 @@ func ErrorHandler(log *slog.Logger) gin.HandlerFunc {
 }
 
 func httpStatusOf(code int) int {
+	// service 层以 HTTP 状态码构造 AppError（如 http.StatusConflict），直接透传。
+	if code >= 100 && code < 600 {
+		return code
+	}
 	switch code {
 	case constants.CodeUnauthorized, constants.CodeInvalidToken, constants.CodeTokenExpired, constants.CodeWrongPassword:
 		return http.StatusUnauthorized

@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Device } from '../../../models';
 import { deviceListApi } from '../../../api/device.api';
 import { CreateTransferPayload } from '../../../api/transfer.api';
-import { DEPARTMENTS } from '../../../constants/enums';
+import { DEPARTMENTS, DEVICE_STATUS, DEVICE_STATUS_TEXT } from '../../../constants/enums';
 import { take } from 'rxjs';
 
 @Component({
@@ -24,7 +24,9 @@ import { take } from 'rxjs';
         <mat-form-field appearance="outline" class="full">
           <mat-label>设备</mat-label>
           <mat-select formControlName="device_id">
-            <mat-option *ngFor="let d of devices" [value]="d.id">{{ d.name }}（{{ d.asset_code }}｜{{ d.department || '未分配科室' }}）</mat-option>
+            <mat-option *ngFor="let d of availableDevices" [value]="d.id">
+              {{ d.name }}（{{ d.asset_code }}｜{{ d.department || '未分配科室' }}｜{{ statusText[d.status] || d.status }}）
+            </mat-option>
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -57,6 +59,14 @@ export class TransferFormDialogComponent implements OnInit {
   private http = inject(HttpClient);
   departments = DEPARTMENTS;
   devices: Device[] = [];
+  statusText = DEVICE_STATUS_TEXT;
+
+  // 维修中/已报废设备不可发起调拨（后端事务内同样拦截）。
+  get availableDevices(): Device[] {
+    return this.devices.filter(
+      (d) => d.status !== DEVICE_STATUS.UNDER_MAINTENANCE && d.status !== DEVICE_STATUS.SCRAPPED,
+    );
+  }
 
   form = this.fb.nonNullable.group({
     device_id: [0 as number, Validators.required],

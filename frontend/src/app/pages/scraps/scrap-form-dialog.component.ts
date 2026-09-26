@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Device } from '../../../models';
 import { deviceListApi } from '../../../api/device.api';
 import { CreateScrapPayload } from '../../../api/scrap.api';
+import { DEVICE_STATUS, DEVICE_STATUS_TEXT } from '../../../constants/enums';
 import { take } from 'rxjs';
 
 @Component({
@@ -23,7 +24,9 @@ import { take } from 'rxjs';
         <mat-form-field appearance="outline" class="full">
           <mat-label>设备</mat-label>
           <mat-select formControlName="device_id">
-            <mat-option *ngFor="let d of devices" [value]="d.id">{{ d.name }}（{{ d.asset_code }}）</mat-option>
+            <mat-option *ngFor="let d of availableDevices" [value]="d.id">
+              {{ d.name }}（{{ d.asset_code }}｜{{ statusText[d.status] || d.status }}）
+            </mat-option>
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline" class="full">
@@ -49,6 +52,14 @@ import { take } from 'rxjs';
 export class ScrapFormDialogComponent implements OnInit {
   private http = inject(HttpClient);
   devices: Device[] = [];
+  statusText = DEVICE_STATUS_TEXT;
+
+  // 维修中设备必须先完工/取消，已报废设备不可重复报废（后端事务内同样拦截）。
+  get availableDevices(): Device[] {
+    return this.devices.filter(
+      (d) => d.status !== DEVICE_STATUS.UNDER_MAINTENANCE && d.status !== DEVICE_STATUS.SCRAPPED,
+    );
+  }
 
   form = this.fb.nonNullable.group({
     device_id: [0 as number, Validators.required],

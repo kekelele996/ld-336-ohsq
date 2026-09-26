@@ -19,6 +19,10 @@ type MaintenanceRecord struct {
 	Cost            float64    `gorm:"type:decimal(12,2)" json:"cost"`
 	FaultDescription string    `gorm:"size:1024" json:"fault_description"`
 	RepairResult    string     `gorm:"size:1024" json:"repair_result"`
+	// PreviousStatus 故障维修创建时记住的设备原状态，取消/完工后据此恢复；非维修工单为空。
+	PreviousStatus  string     `gorm:"size:32;index" json:"previous_status"`
+	// RepairOutcome 故障维修完工结论：resumed=已修复继续使用，broken=无法修好（转报废）。
+	RepairOutcome   string     `gorm:"size:32" json:"repair_outcome"`
 	CreatedBy       string     `gorm:"size:64" json:"created_by"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`

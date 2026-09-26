@@ -6,6 +6,7 @@ import (
 
 	"github.com/medasset/medasset/internal/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ScrapRepository 报废申请仓储。
@@ -29,6 +30,16 @@ func (r *ScrapRepository) Create(s *model.ScrapRequest) error {
 func (r *ScrapRepository) FindByID(id uint) (*model.ScrapRequest, error) {
 	var s model.ScrapRequest
 	err := r.db.First(&s, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &s, err
+}
+
+// FindByIDForUpdate 事务内按 ID 加锁查询（并发审批安全）。
+func (r *ScrapRepository) FindByIDForUpdate(tx *gorm.DB, id uint) (*model.ScrapRequest, error) {
+	var s model.ScrapRequest
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&s, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNotFound
 	}

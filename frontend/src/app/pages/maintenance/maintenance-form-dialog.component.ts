@@ -7,22 +7,25 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatRadioModule } from '@angular/material/radio';
 import { Device } from '../../../models';
 import { deviceListApi } from '../../../api/device.api';
 import { CreateMaintenancePayload, StartPayload, CompletePayload } from '../../../api/maintenance.api';
-import { MAINTENANCE_TYPE, MAINTENANCE_TYPE_TEXT } from '../../../constants/enums';
+import { MAINTENANCE_TYPE, MAINTENANCE_TYPE_TEXT, DEVICE_STATUS } from '../../../constants/enums';
 import { take } from 'rxjs';
 
 export interface MaintenanceFormData {
   mode: 'create' | 'start' | 'complete';
   deviceName?: string;
   deviceId?: number;
+  // 完工弹窗：是否为故障维修单（需要选择维修结论：继续使用 / 无法修好）。
+  isRepair?: boolean;
 }
 
 @Component({
   selector: 'app-maintenance-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatRadioModule],
   template: `
     <h2 mat-dialog-title>{{ title }}</h2>
     <mat-dialog-content>
@@ -31,7 +34,10 @@ export interface MaintenanceFormData {
           <mat-form-field appearance="outline">
             <mat-label>设备</mat-label>
             <mat-select formControlName="device_id">
-              <mat-option *ngFor="let d of devices" [value]="d.id">{{ d.name }}（{{ d.asset_code }}）</mat-option>
+              <mat-option *ngFor="let d of devices" [value]="d.id"
+                          [disabled]="isDeviceBlocked(d)">
+                {{ d.name }}（{{ d.asset_code }}<ng-container *ngIf="isDeviceBlocked(d)">｜{{ blockedHint(d) }}</ng-container>）
+              </mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -48,6 +54,9 @@ export interface MaintenanceFormData {
             <mat-label>负责人/工程师</mat-label>
             <input matInput formControlName="engineer">
           </mat-form-field>
+          <p class="tip full" *ngIf="form.value.type === MAINTENANCE_TYPE.REPAIR">
+            提示：故障维修单提交后设备将立即转为「维修中」，维修期间调拨与报废申请会被暂停。
+          </p>
         </form>
       </ng-container>
       <ng-container *ngIf="data.mode === 'start'">
@@ -77,9 +86,16 @@ export interface MaintenanceFormData {
             <input matInput type="number" formControlName="cost">
           </mat-form-field>
           <mat-form-field appearance="outline" class="full">
-            <mat-label>维修结果</mat-label>
+            <mat-label>维修结果说明</mat-label>
             <textarea matInput formControlName="repair_result" rows="2"></textarea>
           </mat-form-field>
+          <div class="full outcome" *ngIf="data.isRepair">
+            <label class="outcome-label">维修结论 <span class="required">*</span></label>
+            <mat-radio-group formControlName="repair_outcome" class="outcome-group">
+              <mat-radio-button value="resumed" color="primary">继续使用（恢复设备原状态）</mat-radio-button>
+              <mat-radio-button value="broken" color="warn">无法修好（设备转「已报废」）</mat-radio-button>
+            </mat-radio-group>
+          </div>
         </form>
       </ng-container>
     </mat-dialog-content>
@@ -91,12 +107,18 @@ export interface MaintenanceFormData {
   styles: [`
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; padding-top: 8px; min-width: 500px; }
     .full { grid-column: 1 / -1; }
+    .tip { color: #8a6d3b; font-size: 12px; margin: 0; }
+    .outcome { padding: 8px 0 4px; }
+    .outcome-label { display: block; font-size: 12px; color: rgba(0,0,0,.6); margin-bottom: 6px; }
+    .required { color: #f44336; }
+    .outcome-group { display: flex; flex-direction: column; gap: 8px; }
   `],
 })
 export class MaintenanceFormDialogComponent implements OnInit {
   private http = inject(HttpClient);
   typeOptions = Object.entries(MAINTENANCE_TYPE_TEXT).map(([value, label]) => ({ value, label }));
   devices: Device[] = [];
+  MAINTENANCE_TYPE = MAINTENANCE_TYPE;
 
   form = this.fb.nonNullable.group({
     device_id: [0 as number, Validators.required],
@@ -112,6 +134,7 @@ export class MaintenanceFormDialogComponent implements OnInit {
     work_hours: [0],
     cost: [0],
     repair_result: [''],
+    repair_outcome: ['', this.data.isRepair ? Validators.required : Validators.nullValidator],
   });
 
   get activeForm(): any {
@@ -137,6 +160,15 @@ export class MaintenanceFormDialogComponent implements OnInit {
     }
   }
 
+  // 已报废设备不可再报修；维修中设备已有未结束维修单，不可重复创建。
+  isDeviceBlocked(d: Device): boolean {
+    return d.status === DEVICE_STATUS.SCRAPPED || d.status === DEVICE_STATUS.UNDER_MAINTENANCE;
+  }
+
+  blockedHint(d: Device): string {
+    return d.status === DEVICE_STATUS.SCRAPPED ? '已报废' : '维修中';
+  }
+
   save(): void {
     if (this.data.mode === 'create') {
       const raw = this.form.getRawValue();
@@ -159,6 +191,9 @@ export class MaintenanceFormDialogComponent implements OnInit {
         cost: raw.cost,
         repair_result: raw.repair_result,
       };
+      if (this.data.isRepair && (raw.repair_outcome === 'resumed' || raw.repair_outcome === 'broken')) {
+        payload.repair_outcome = raw.repair_outcome;
+      }
       this.dialogRef.close(payload);
     }
   }

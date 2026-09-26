@@ -36,6 +36,12 @@ const (
 	MaintenanceStatusCancelled  = "cancelled"  // 已取消
 )
 
+// 故障维修完工结论枚举（仅 type=repair 的工单完工时必填）。
+const (
+	RepairOutcomeResumed = "resumed" // 已修复，继续使用
+	RepairOutcomeBroken  = "broken"  // 无法修好
+)
+
 // 计量状态枚举。
 const (
 	CalibrationStatusNormal     = "normal"      // 合格
