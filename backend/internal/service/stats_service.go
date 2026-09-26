@@ -12,12 +12,12 @@ import (
 
 // StatsService 资产统计与合规报表服务。
 type StatsService struct {
-	device       *repository.DeviceRepository
-	maintenance  *repository.MaintenanceRepository
-	calibration  *repository.CalibrationRepository
-	purchase     *repository.PurchaseRepository
-	audit        *AuditService
-	log          *slog.Logger
+	device      *repository.DeviceRepository
+	maintenance *repository.MaintenanceRepository
+	calibration *repository.CalibrationRepository
+	purchase    *repository.PurchaseRepository
+	audit       *AuditService
+	log         *slog.Logger
 }
 
 func NewStatsService(device *repository.DeviceRepository, maintenance *repository.MaintenanceRepository,

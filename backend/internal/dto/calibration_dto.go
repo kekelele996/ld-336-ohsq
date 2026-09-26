@@ -15,9 +15,9 @@ type CreateCalibrationReq struct {
 
 // CalibrationResultReq 登记计量结果请求。
 type CalibrationResultReq struct {
-	Result               string     `json:"result" binding:"required,oneof=qualified unqualified"`
-	NextCalibrationDate  *time.Time `json:"next_calibration_date"`
-	CertificateNo        string     `json:"certificate_no" binding:"omitempty,max=128"`
-	CalibrationOrg       string     `json:"calibration_org" binding:"omitempty,max=128"`
-	Remark               string     `json:"remark" binding:"omitempty,max=512"`
+	Result              string     `json:"result" binding:"required,oneof=qualified unqualified"`
+	NextCalibrationDate *time.Time `json:"next_calibration_date"`
+	CertificateNo       string     `json:"certificate_no" binding:"omitempty,max=128"`
+	CalibrationOrg      string     `json:"calibration_org" binding:"omitempty,max=128"`
+	Remark              string     `json:"remark" binding:"omitempty,max=512"`
 }

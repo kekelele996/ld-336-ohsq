@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/glebarez/sqlite"
 	"github.com/medasset/medasset/internal/model"
 	"github.com/medasset/medasset/internal/repository"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

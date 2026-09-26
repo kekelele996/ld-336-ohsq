@@ -24,6 +24,9 @@ type CompleteMaintenanceReq struct {
 	WorkHours     float64 `json:"work_hours" binding:"omitempty,min=0"`
 	Cost          float64 `json:"cost" binding:"omitempty,min=0"`
 	RepairResult  string  `json:"repair_result" binding:"omitempty,max=1024"`
+	// RepairOutcome 故障维修完工结论：continue_use=继续使用（恢复原状态），unrepairable=无法修好（转已报废）。
+	// 仅故障维修工单必填，且只允许二选一，以避免完工时设备状态被改错。
+	RepairOutcome string `json:"repair_outcome" binding:"omitempty,oneof=continue_use unrepairable"`
 }
 
 // CancelMaintenanceReq 取消工单请求。

@@ -17,10 +17,10 @@ import (
 
 // Deps 路由装配依赖。
 type Deps struct {
-	DB   *gorm.DB
-	Cfg  *config.Config
-	Log  *slog.Logger
-	RDB  *redis.Client
+	DB  *gorm.DB
+	Cfg *config.Config
+	Log *slog.Logger
+	RDB *redis.Client
 }
 
 // New 构建 Gin 引擎并注册全部路由。

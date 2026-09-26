@@ -2,11 +2,11 @@ package constants
 
 // 设备状态枚举。
 const (
-	DeviceStatusInStorage       = "in_storage"        // 在库
-	DeviceStatusInUse           = "in_use"            // 使用中
+	DeviceStatusInStorage        = "in_storage"        // 在库
+	DeviceStatusInUse            = "in_use"            // 使用中
 	DeviceStatusUnderMaintenance = "under_maintenance" // 维修中
-	DeviceStatusDisabled        = "disabled"          // 已禁用
-	DeviceStatusScrapped        = "scrapped"          // 已报废
+	DeviceStatusDisabled         = "disabled"          // 已禁用
+	DeviceStatusScrapped         = "scrapped"          // 已报废
 )
 
 // 采购申请状态枚举。
@@ -30,18 +30,24 @@ const (
 
 // 保养/维修状态枚举。
 const (
-	MaintenanceStatusPending    = "pending"    // 待处理
+	MaintenanceStatusPending    = "pending"     // 待处理
 	MaintenanceStatusInProgress = "in_progress" // 处理中
-	MaintenanceStatusCompleted  = "completed"  // 已完成
-	MaintenanceStatusCancelled  = "cancelled"  // 已取消
+	MaintenanceStatusCompleted  = "completed"   // 已完成
+	MaintenanceStatusCancelled  = "cancelled"   // 已取消
+)
+
+// 故障维修完工结论枚举。
+const (
+	RepairOutcomeContinueUse  = "continue_use" // 继续使用：恢复设备原状态
+	RepairOutcomeUnrepairable = "unrepairable" // 无法修好：设备转已报废
 )
 
 // 计量状态枚举。
 const (
-	CalibrationStatusNormal     = "normal"      // 合格
+	CalibrationStatusNormal      = "normal"      // 合格
 	CalibrationStatusUnqualified = "unqualified" // 不合格
-	CalibrationStatusDue        = "due"         // 即将到期
-	CalibrationStatusExpired    = "expired"     // 已过期
+	CalibrationStatusDue         = "due"         // 即将到期
+	CalibrationStatusExpired     = "expired"     // 已过期
 )
 
 // 调拨状态枚举。

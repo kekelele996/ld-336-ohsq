@@ -19,6 +19,8 @@ export interface CompletePayload {
   work_hours?: number;
   cost?: number;
   repair_result?: string;
+  // 故障维修必填：continue_use=继续使用（恢复原状态），unrepairable=无法修好（转报废）。
+  repair_outcome?: string;
 }
 export interface CancelPayload { reason?: string; }
 

@@ -127,7 +127,8 @@ export class ScrapsComponent implements OnInit, OnDestroy {
       if (!ok) return;
       scrapApproveApi(this.http, s.id).subscribe({
         next: () => { this.snackBar.open('报废已批准，设备已归档', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        // 与维修完工并发时，后到一方会收到带最新状态的提示，刷新列表保证页面状态最新。
+        error: (err) => { this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 }); this.load(); },
       });
     });
   }

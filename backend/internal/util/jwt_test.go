@@ -22,9 +22,9 @@ func TestGenerateAndParseToken(t *testing.T) {
 
 func TestParseTokenInvalid(t *testing.T) {
 	cases := []struct {
-		name  string
+		name   string
 		secret string
-		token string
+		token  string
 	}{
 		{"wrong secret", "secret-a", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6ImEiLCJpYXQiOjE3MDAwMDAwMDB9.invalid"},
 		{"empty token", "secret-a", ""},

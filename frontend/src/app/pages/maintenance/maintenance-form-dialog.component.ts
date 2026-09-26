@@ -10,13 +10,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { Device } from '../../../models';
 import { deviceListApi } from '../../../api/device.api';
 import { CreateMaintenancePayload, StartPayload, CompletePayload } from '../../../api/maintenance.api';
-import { MAINTENANCE_TYPE, MAINTENANCE_TYPE_TEXT } from '../../../constants/enums';
+import { MAINTENANCE_TYPE, MAINTENANCE_TYPE_TEXT, REPAIR_OUTCOME_TEXT, DEVICE_STATUS, DEVICE_STATUS_TEXT } from '../../../constants/enums';
 import { take } from 'rxjs';
 
 export interface MaintenanceFormData {
   mode: 'create' | 'start' | 'complete';
   deviceName?: string;
   deviceId?: number;
+  // 完工时传入工单类型，仅故障维修（repair）必须选择维修结论。
+  recordType?: string;
 }
 
 @Component({
@@ -31,7 +33,9 @@ export interface MaintenanceFormData {
           <mat-form-field appearance="outline">
             <mat-label>设备</mat-label>
             <mat-select formControlName="device_id">
-              <mat-option *ngFor="let d of devices" [value]="d.id">{{ d.name }}（{{ d.asset_code }}）</mat-option>
+              <mat-option *ngFor="let d of devices" [value]="d.id" [disabled]="isDeviceBlocked(d.status)">
+                {{ d.name }}（{{ d.asset_code }}｜{{ deviceStatusText[d.status] || d.status }}）
+              </mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -60,6 +64,12 @@ export interface MaintenanceFormData {
       </ng-container>
       <ng-container *ngIf="data.mode === 'complete'">
         <form [formGroup]="completeForm" class="form-grid">
+          <mat-form-field appearance="outline" class="full" *ngIf="isRepair">
+            <mat-label>维修结论</mat-label>
+            <mat-select formControlName="repair_outcome" placeholder="请选择维修结果">
+              <mat-option *ngFor="let o of outcomeOptions" [value]="o.value">{{ o.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
           <mat-form-field appearance="outline" class="full">
             <mat-label>保养/维修内容</mat-label>
             <textarea matInput formControlName="content" rows="2"></textarea>
@@ -96,7 +106,17 @@ export interface MaintenanceFormData {
 export class MaintenanceFormDialogComponent implements OnInit {
   private http = inject(HttpClient);
   typeOptions = Object.entries(MAINTENANCE_TYPE_TEXT).map(([value, label]) => ({ value, label }));
+  outcomeOptions = Object.entries(REPAIR_OUTCOME_TEXT).map(([value, label]) => ({ value, label }));
+  deviceStatusText = DEVICE_STATUS_TEXT;
   devices: Device[] = [];
+
+  // 已报废设备禁止报修；维修中的设备禁止重复发起故障维修（保养计划不受限，与后端规则一致）。
+  isDeviceBlocked(status: string): boolean {
+    if (status === DEVICE_STATUS.SCRAPPED) {
+      return true;
+    }
+    return status === DEVICE_STATUS.UNDER_MAINTENANCE && this.form.controls.type.value === MAINTENANCE_TYPE.REPAIR;
+  }
 
   form = this.fb.nonNullable.group({
     device_id: [0 as number, Validators.required],
@@ -112,7 +132,12 @@ export class MaintenanceFormDialogComponent implements OnInit {
     work_hours: [0],
     cost: [0],
     repair_result: [''],
+    repair_outcome: [''],
   });
+
+  get isRepair(): boolean {
+    return this.data.recordType === MAINTENANCE_TYPE.REPAIR;
+  }
 
   get activeForm(): any {
     return this.data.mode === 'create' ? this.form : this.data.mode === 'start' ? this.startForm : this.completeForm;
@@ -134,6 +159,10 @@ export class MaintenanceFormDialogComponent implements OnInit {
         next: (res) => (this.devices = res.list),
         error: () => (this.devices = []),
       });
+    }
+    if (this.data.mode === 'complete' && this.isRepair) {
+      this.completeForm.controls.repair_outcome.setValidators(Validators.required);
+      this.completeForm.controls.repair_outcome.updateValueAndValidity();
     }
   }
 
@@ -158,6 +187,7 @@ export class MaintenanceFormDialogComponent implements OnInit {
         work_hours: raw.work_hours,
         cost: raw.cost,
         repair_result: raw.repair_result,
+        repair_outcome: this.isRepair ? raw.repair_outcome : undefined,
       };
       this.dialogRef.close(payload);
     }

@@ -16,7 +16,7 @@ import (
 // RateLimit 限流中间件：优先使用 Redis 滑动窗口，Redis 不可用时降级为内存限流。
 func RateLimit(rdb *redis.Client, limitPerSecond int) gin.HandlerFunc {
 	mem := &memLimiter{
-		mu:    sync.Mutex{},
+		mu:      sync.Mutex{},
 		buckets: make(map[string]*bucket),
 	}
 	return func(c *gin.Context) {

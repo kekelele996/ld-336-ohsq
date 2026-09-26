@@ -1,8 +1,8 @@
 package service
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -15,14 +15,14 @@ import (
 
 // UserService 用户与认证服务。
 type UserService struct {
-	repo    *repository.UserRepository
-	audit   *AuditService
-	cfg     *serviceConfig
-	log     *slog.Logger
+	repo  *repository.UserRepository
+	audit *AuditService
+	cfg   *serviceConfig
+	log   *slog.Logger
 }
 
 type serviceConfig struct {
-	JWTSecret string
+	JWTSecret      string
 	JWTExpireHours int
 }
 

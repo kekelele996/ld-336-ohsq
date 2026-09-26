@@ -22,7 +22,7 @@ import { MaintenanceRecord } from '../../../models';
 import {
   maintenanceCreateApi, maintenancePlanApi, maintenanceStartApi, maintenanceCompleteApi, maintenanceCancelApi,
 } from '../../../api/maintenance.api';
-import { MAINTENANCE_STATUS, MAINTENANCE_STATUS_TEXT, MAINTENANCE_TYPE_TEXT } from '../../../constants/enums';
+import { MAINTENANCE_STATUS, MAINTENANCE_STATUS_TEXT, MAINTENANCE_TYPE_TEXT, REPAIR_OUTCOME_TEXT } from '../../../constants/enums';
 import { formatDate, moneyLabel } from '../../../utils/format';
 import { parseHttpError, useHttp } from '../../../utils/request';
 import { Subject, takeUntil } from 'rxjs';
@@ -72,6 +72,13 @@ import { Subject, takeUntil } from 'rxjs';
             <th mat-header-cell *matHeaderCellDef>类型</th>
             <td mat-cell *matCellDef="let m">{{ typeText[m.type] || m.type }}</td>
           </ng-container>
+          <ng-container matColumnDef="repair_outcome">
+            <th mat-header-cell *matHeaderCellDef>维修结论</th>
+            <td mat-cell *matCellDef="let m">
+              <ng-container *ngIf="m.type === 'repair'">{{ outcomeText[m.repair_outcome] || '-' }}</ng-container>
+              <ng-container *ngIf="m.type !== 'repair'">-</ng-container>
+            </td>
+          </ng-container>
           <ng-container matColumnDef="engineer">
             <th mat-header-cell *matHeaderCellDef>工程师</th>
             <td mat-cell *matCellDef="let m">{{ m.engineer || '-' }}</td>
@@ -93,7 +100,7 @@ import { Subject, takeUntil } from 'rxjs';
             <td mat-cell *matCellDef="let m">
               <button mat-stroked-button color="primary" *ngIf="m.status === statuses.PENDING" (click)="start(m)">执行</button>
               <button mat-stroked-button color="accent" *ngIf="m.status === statuses.IN_PROGRESS" (click)="complete(m)">完成</button>
-              <button mat-stroked-button color="warn" *ngIf="m.status === statuses.PENDING" (click)="cancel(m)">取消</button>
+              <button mat-stroked-button color="warn" *ngIf="m.status === statuses.PENDING || m.status === statuses.IN_PROGRESS" (click)="cancel(m)">取消</button>
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
@@ -121,10 +128,11 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
 
   statusText = MAINTENANCE_STATUS_TEXT;
   typeText = MAINTENANCE_TYPE_TEXT;
+  outcomeText = REPAIR_OUTCOME_TEXT;
   statuses = MAINTENANCE_STATUS;
   typeOptions = Object.entries(MAINTENANCE_TYPE_TEXT).map(([value, label]) => ({ value, label }));
   statusOptions = Object.entries(MAINTENANCE_STATUS_TEXT).map(([value, label]) => ({ value, label }));
-  columns = ['record_no', 'device_name', 'type', 'engineer', 'planned_date', 'cost', 'status', 'actions'];
+  columns = ['record_no', 'device_name', 'type', 'engineer', 'planned_date', 'cost', 'repair_outcome', 'status', 'actions'];
   page = 1;
   pageSize = 10;
   form = this.fb.nonNullable.group({ type: [''], status: [''] });
@@ -166,31 +174,34 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       if (!payload) return;
       maintenanceStartApi(this.http, m.id, payload).subscribe({
         next: () => { this.snackBar.open('工单已开始执行', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        error: (err) => { this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 }); this.load(); },
       });
     });
   }
 
   complete(m: MaintenanceRecord): void {
-    const ref = this.dialog.open(MaintenanceFormDialogComponent, { data: { mode: 'complete', deviceName: m.device_name } as MaintenanceFormData, width: '620px' });
+    const ref = this.dialog.open(MaintenanceFormDialogComponent, {
+      data: { mode: 'complete', deviceName: m.device_name, recordType: m.type } as MaintenanceFormData, width: '620px',
+    });
     ref.afterClosed().subscribe((payload) => {
       if (!payload) return;
       maintenanceCompleteApi(this.http, m.id, payload).subscribe({
         next: () => { this.snackBar.open('工单已完成', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        // 并发冲突时后端会返回最新状态，列表必须刷新，让后到的一方看到最新状态。
+        error: (err) => { this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 }); this.load(); },
       });
     });
   }
 
   cancel(m: MaintenanceRecord): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: { title: '取消工单', message: `确认取消工单「${m.record_no}」？`, danger: true } as ConfirmDialogData,
+      data: { title: '取消工单', message: `确认取消工单「${m.record_no}」？设备将恢复维修前的原状态。`, danger: true } as ConfirmDialogData,
     });
     ref.afterClosed().subscribe((ok) => {
       if (!ok) return;
       maintenanceCancelApi(this.http, m.id, { reason: '手动取消' }).subscribe({
-        next: () => { this.snackBar.open('工单已取消', '关闭', { duration: 2000 }); this.load(); },
-        error: (err) => this.snackBar.open(parseHttpError(err), '关闭', { duration: 3000 }),
+        next: () => { this.snackBar.open('工单已取消，设备已恢复原状态', '关闭', { duration: 2500 }); this.load(); },
+        error: (err) => { this.snackBar.open(parseHttpError(err), '关闭', { duration: 4000 }); this.load(); },
       });
     });
   }

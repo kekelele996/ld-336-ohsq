@@ -46,6 +46,18 @@ func (r *DeviceRepository) FindByIDForUpdate(tx *gorm.DB, id uint) (*model.Devic
 	return &d, err
 }
 
+// FindByIDTx 在指定事务内做不加锁的一致性快照读。
+// 与 FindByIDForUpdate 配合：先快照读、再等待行锁、拿到锁后比对最新状态，
+// 可识别“等待期间状态已被另一笔事务修改”的并发场景。
+func (r *DeviceRepository) FindByIDTx(tx *gorm.DB, id uint) (*model.Device, error) {
+	var d model.Device
+	err := tx.First(&d, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &d, err
+}
+
 // FindByAssetCode 按资产编号查询。
 func (r *DeviceRepository) FindByAssetCode(code string) (*model.Device, error) {
 	var d model.Device
@@ -116,7 +128,7 @@ func (r *DeviceRepository) GroupCount(field string) (map[string]int64, error) {
 		Count    int64
 	}
 	var rows []row
-	err := r.db.Model(&model.Device{}).Select(field+" AS group_key, COUNT(*) AS count").Group(field).Scan(&rows).Error
+	err := r.db.Model(&model.Device{}).Select(field + " AS group_key, COUNT(*) AS count").Group(field).Scan(&rows).Error
 	if err != nil {
 		return nil, err
 	}

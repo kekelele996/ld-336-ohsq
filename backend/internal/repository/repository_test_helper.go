@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"github.com/glebarez/sqlite"
 	"github.com/medasset/medasset/internal/model"
 	"github.com/medasset/medasset/internal/util"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

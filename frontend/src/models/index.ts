@@ -100,6 +100,8 @@ export interface MaintenanceRecord {
   cost: number;
   fault_description: string;
   repair_result: string;
+  original_status: string;
+  repair_outcome: string;
   created_by: string;
 }
 

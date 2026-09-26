@@ -9,7 +9,7 @@ import (
 
 // 日期、状态文本、类型文本等格式化逻辑集中于此（多处耦合）。
 const (
-	dateLayout = "2006-01-02"
+	dateLayout     = "2006-01-02"
 	dateTimeLayout = "2006-01-02 15:04:05"
 )
 
@@ -100,6 +100,18 @@ func MaintenanceStatusText(status string) string {
 		return "已取消"
 	default:
 		return status
+	}
+}
+
+// RepairOutcomeText 故障维修完工结论展示文本。
+func RepairOutcomeText(outcome string) string {
+	switch outcome {
+	case constants.RepairOutcomeContinueUse:
+		return "继续使用"
+	case constants.RepairOutcomeUnrepairable:
+		return "无法修好"
+	default:
+		return outcome
 	}
 }
 

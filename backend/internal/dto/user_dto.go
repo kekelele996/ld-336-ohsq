@@ -25,7 +25,7 @@ type LoginReq struct {
 
 // LoginResp 登录响应。
 type LoginResp struct {
-	Token string     `json:"token"`
+	Token string      `json:"token"`
 	User  *model.User `json:"user"`
 }
 

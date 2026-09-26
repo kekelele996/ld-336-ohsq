@@ -1,8 +1,8 @@
 package service
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -50,18 +50,18 @@ func (s *CalibrationService) Create(req *dto.CreateCalibrationReq, operator stri
 	}
 	next := last.AddDate(0, req.CalibrationCycleMonths, 0)
 	c := &model.CalibrationRecord{
-		InstrumentNo:            req.InstrumentNo,
-		DeviceID:                d.ID,
-		DeviceName:              d.Name,
-		CalibrationCycleMonths:  req.CalibrationCycleMonths,
-		LastCalibrationDate:     last,
-		NextCalibrationDate:     &next,
-		Status:                  constants.CalibrationStatusNormal,
-		Result:                  constants.CalibrationResultQualified,
-		CertificateNo:           req.CertificateNo,
-		CalibrationOrg:          req.CalibrationOrg,
-		Remark:                  req.Remark,
-		CreatedBy:               operator,
+		InstrumentNo:           req.InstrumentNo,
+		DeviceID:               d.ID,
+		DeviceName:             d.Name,
+		CalibrationCycleMonths: req.CalibrationCycleMonths,
+		LastCalibrationDate:    last,
+		NextCalibrationDate:    &next,
+		Status:                 constants.CalibrationStatusNormal,
+		Result:                 constants.CalibrationResultQualified,
+		CertificateNo:          req.CertificateNo,
+		CalibrationOrg:         req.CalibrationOrg,
+		Remark:                 req.Remark,
+		CreatedBy:              operator,
 	}
 	if err := s.repo.Create(c); err != nil {
 		return nil, util.NewAppError(http.StatusInternalServerError, "建立计量台账失败: instrument_no="+req.InstrumentNo, err)
